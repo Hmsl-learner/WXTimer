@@ -41,18 +41,25 @@ class WeixinLogin(APIView):
             print("keyError")
             return Response({'code': 'fail'})
         else:
+
             # 打印到后端命令行
             print(openid, session_key)
+
+            if not self.checkWhite(openid):
+                print('not in white')
+                return Response({
+                    'code': 'fail',
+                    'errMsg': 'not in whitelist'
+                })
+
             try:
                 user = User.objects.get(username=openid)
             except User.DoesNotExist:
                 user = None
 
             if not user:
-                user = User.objects.create(
-                    username=openid,
-                    password=openid
-                )
+                User.objects.create_user(username=openid)
+
             refresh = RefreshToken.for_user(user)
 
             return Response({
@@ -60,3 +67,23 @@ class WeixinLogin(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token)
             })
+
+    def checkWhite(self, openid):
+        file_obj = open('whitelist.json', 'r')
+        try:
+            white_text = file_obj.read()
+            white_data = json.loads(white_text)
+            white_list = white_data['whitelist']
+            if(white_list.count(openid) == 0):
+                return False
+            else:
+                return True
+        finally:
+            file_obj.close()
+
+        return False
+
+
+
+
+
