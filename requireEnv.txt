@@ -1,0 +1,6 @@
+django==4.0.1
+djangorestframework
+markdown
+django-filter
+requests
+djangorestframework-simplejwt
